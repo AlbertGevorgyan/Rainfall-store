@@ -15,7 +15,7 @@
     <dependency>
       <groupId>io.rainfall</groupId>
       <artifactId>rainfall-store-core</artifactId>
-      <version>${version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sparkjava</groupId>
