@@ -1,5 +1,8 @@
 package io.rainfall.store.data;
 
+import sun.misc.IOUtils;
+
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Objects;
@@ -21,6 +24,14 @@ public class Payload {
 
   public static Payload raw(byte[] data) {
     return new Payload(data, RAW, data.length);
+  }
+
+  /**
+   * For Spring.
+   */
+  @SuppressWarnings("unused")
+  public Payload() {
+    this(new byte[]{}, CompressionFormat.RAW, 0);
   }
 
   public static Payload of(byte[] data, CompressionFormat format, int originalLength) {
