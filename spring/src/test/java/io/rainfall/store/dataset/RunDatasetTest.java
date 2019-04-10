@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
 import java.util.Optional;
 
 import static io.rainfall.store.values.Run.Status.COMPLETE;
@@ -73,6 +74,14 @@ public class RunDatasetTest {
             .get();
     assertThat(parentRecord.getValue(), is(testCase));
     assertThat(parentRecord.getRuns(), contains(childRecord));
+  }
+
+  @Test
+  public void testFindByParentId() {
+    long parentId = saveParent();
+    RunRecord childRecord = runDataset.save(parentId, run);
+    List<RunRecord> children = runDataset.findByParentId(parentId);
+    assertThat(children, contains(childRecord));
   }
 
   @Test

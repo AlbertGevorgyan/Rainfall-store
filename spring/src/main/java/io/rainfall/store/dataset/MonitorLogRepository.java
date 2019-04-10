@@ -1,5 +1,5 @@
 package io.rainfall.store.dataset;
 
-interface MonitorLogRepository extends RecordRepository<MonitorLogRecord> {
+interface MonitorLogRepository extends ChildRepository<MonitorLogRecord> {
 
 }

@@ -1,10 +1,18 @@
 package io.rainfall.store.dataset;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.rainfall.store.values.Run;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,6 +27,7 @@ public class RunRecord extends ChildRecord<Run, CaseRecord> {
         super(parent, value);
     }
 
+    @JsonIgnore
     @OneToMany(
             mappedBy = "parent",
             fetch = FetchType.LAZY,
@@ -34,6 +43,7 @@ public class RunRecord extends ChildRecord<Run, CaseRecord> {
         monitorLogs.add(logRecord);
     }
 
+    @JsonIgnore
     @OneToMany(
             mappedBy = "parent",
             fetch = FetchType.LAZY,

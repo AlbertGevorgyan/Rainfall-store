@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import static io.rainfall.store.values.Run.Status.INCOMPLETE;
@@ -87,6 +88,19 @@ public class MonitorLogDatasetTest {
             .map(Record::getValue)
             .orElse(null);
     assertThat(payloadFound, is(payload));
+  }
+
+  @Test
+  public void testFindByParentId() {
+    long parentId = saveParent();
+    MonitorLog log = MonitorLog.builder()
+            .host("localhost")
+            .type("vmstat")
+            .payload(Payload.raw("xxx"))
+            .build();
+    MonitorLogRecord childRecord = logDataset.save(parentId, log);
+    List<MonitorLogRecord> children = logDataset.findByParentId(parentId);
+    assertThat(children, contains(childRecord));
   }
 
   private long saveParent() {

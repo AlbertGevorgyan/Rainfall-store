@@ -13,17 +13,22 @@ public class Run {
   }
 
   @Builder.Default
-  private final String version = null;
+  @NonNull
+  private final String version = "";
 
   @Builder.Default
-  private final String className = null;
+  @NonNull
+  private final String className = "";
 
   @Builder.Default
-  private final String checksum = null;
+  @NonNull
+  private final String checksum = "";
 
   @Builder.Default
+  @NonNull
   private final Status status = Status.UNKNOWN;
 
   @Builder.Default
+  @NonNull
   private final boolean baseline = false;
 }

@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-interface RunRepository extends RecordRepository<RunRecord> {
+interface RunRepository extends ChildRepository<RunRecord> {
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(value = "update RunRecord r set r.value.status = :status where r.id = :id")

@@ -2,7 +2,6 @@ package io.rainfall.store;
 
 import io.rainfall.store.data.Payload;
 import io.rainfall.store.dataset.CaseDataset;
-import io.rainfall.store.dataset.CaseRecord;
 import io.rainfall.store.dataset.JobDataset;
 import io.rainfall.store.dataset.MonitorLogDataset;
 import io.rainfall.store.dataset.OutputLogDataset;
@@ -25,9 +24,10 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static io.rainfall.store.values.Run.Status.COMPLETE;
+import static io.rainfall.store.values.Run.Status.INCOMPLETE;
 
 @SpringBootApplication
-@SuppressWarnings("unused")
+@SuppressWarnings("unassigned")
 public class RainfallStoreTestApp {
 
   @Autowired
@@ -46,7 +46,7 @@ public class RainfallStoreTestApp {
   private OutputLogDataset outputLogDataset;
 
   public static void main(String[] args) {
-    SpringApplication.run(RainfallStoreApp.class, args);
+    SpringApplication.run(RainfallStoreTestApp.class, args);
   }
 
   @Bean
@@ -64,14 +64,21 @@ public class RainfallStoreTestApp {
     Case test2 = Case.builder()
             .name("Test2")
             .build();
-    CaseRecord caseRecord = caseDataset.save(test2);
-    caseDataset.setDescription(caseRecord.getId(), "Updated");
+    long caseId = caseDataset.save(test2)
+            .getId();
+    caseDataset.setDescription(caseId, "Updated");
 
-    Run run = Run.builder().build();
-    long runId = runDataset.save(caseRecord.getId(), run).getId();
+    Run run = Run.builder()
+            .status(INCOMPLETE)
+            .version("1.1.1.1")
+            .checksum("xxx")
+            .baseline(false)
+            .className("my.Class")
+            .build();
+    long runId = runDataset.save(caseId, run).getId();
     runDataset.setStatus(runId, COMPLETE);
     runDataset.setBaseline(runId, true);
-    Long lastBaselineID = runDataset.getLastBaselineID(caseRecord.getId())
+    Long lastBaselineID = runDataset.getLastBaselineID(caseId)
             .orElse(null);
 
     Payload payload = Utils.readBytes("150.hlog");
@@ -98,7 +105,7 @@ public class RainfallStoreTestApp {
             .build();
     long outputLogId = outputLogDataset.save(jobId, outputLog).getId();
 
-    Case testSaved = caseDataset.findByName("Test2")
+    Case testSaved = caseDataset.getRecord(caseId)
             .map(Record::getValue)
             .orElse(null);
     Run runSaved = runDataset.getRecord(runId)
@@ -112,8 +119,6 @@ public class RainfallStoreTestApp {
             .orElse(null);
 
     Optional<OutputLogRecord> outputLogRecord = outputLogDataset.getRecord(outputLogId);
-    Optional<OutputLog> outputLogFound = outputLogRecord
-            .map(Record::getValue);
     OutputLog outputLogSaved = outputLogRecord
             .map(Record::getValue)
             .orElse(null);
@@ -126,6 +131,7 @@ public class RainfallStoreTestApp {
     System.out.println("RUN: " + runSaved);
     System.out.println("LAST BASELINE: " +
             lastBaselineID);
+    System.out.println("JOB: " + jobSaved);
     System.out.println("MONITOR LOG: " + logSaved);
     System.out.println("JOB: " + logSaved);
     System.out.println("OUTPUT LOG: " + outputLogSaved);

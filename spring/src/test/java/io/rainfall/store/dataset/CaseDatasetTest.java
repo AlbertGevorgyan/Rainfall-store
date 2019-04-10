@@ -80,15 +80,4 @@ public class CaseDatasetTest {
             is(updated)
     );
   }
-
-  @Test
-  public void testFindByName() {
-    Case value = Case.builder()
-            .name("Test1")
-            .build();
-    CaseRecord saved = dataset.save(value);
-    CaseRecord found = dataset.findByName("Test1")
-            .get();
-    assertThat(found, is(saved));
-  }
 }

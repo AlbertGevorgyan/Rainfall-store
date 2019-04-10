@@ -12,6 +12,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
+
 import static io.rainfall.store.values.Run.Status.INCOMPLETE;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.instanceOf;
@@ -43,12 +45,17 @@ public class JobDatasetTest {
           .className("my.Class")
           .build();
 
+  private final Job job =Job.builder()
+          .clientNumber(1)
+          .host("localhost")
+          .symbolicName("localhost-1")
+          .details("details")
+          .build();
+
   @Test
   public void testSaveWithNonExistentParent() {
-    Job value = Job.builder()
-            .build();
     try {
-      jobDataset.save(0L, value);
+      jobDataset.save(0L, job);
       fail();
     } catch (Throwable e) {
       assertThat(e, instanceOf(IllegalArgumentException.class));
@@ -59,13 +66,6 @@ public class JobDatasetTest {
   public void testSave() {
     long parentId = saveParent();
 
-    Job job = Job.builder()
-            .clientNumber(1)
-            .host("localhost")
-            .symbolicName("localhost-1")
-            .details("details")
-            .build();
-
     JobRecord childRecord = jobDataset.save(parentId, job);
     assertThat(childRecord.getValue(), is(job));
     assertThat(childRecord.getParent().getValue(), is(run));
@@ -75,6 +75,14 @@ public class JobDatasetTest {
             .get();
     assertThat(parentRecord.getValue(), is(run));
     assertThat(parentRecord.getJobs(), contains(childRecord));
+  }
+
+  @Test
+  public void testFindByParentId() {
+    long parentId = saveParent();
+    JobRecord childRecord = jobDataset.save(parentId, job);
+    List<JobRecord> children = jobDataset.findByParentId(parentId);
+    assertThat(children, contains(childRecord));
   }
 
   private long saveParent() {

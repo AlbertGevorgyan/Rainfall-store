@@ -1,5 +1,6 @@
 package io.rainfall.store.dataset;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ class ChildRecord<V, P extends Record<?>> extends Record<V> {
     this.parent = parent;
   }
 
+  @JsonBackReference
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id", nullable = false)
   @Getter

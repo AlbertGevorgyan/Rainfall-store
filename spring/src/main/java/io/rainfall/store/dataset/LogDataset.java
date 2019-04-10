@@ -7,7 +7,7 @@ import lombok.NonNull;
 abstract class LogDataset<
         V extends Log,
         CR extends LogRecord<V, PR>,
-        CS extends RecordRepository<CR>,
+        CS extends ChildRepository<CR>,
         PR extends Record<?>,
         PS extends RecordRepository<PR>
         > extends ChildDataset<V, CR, CS, PR, PS> {
