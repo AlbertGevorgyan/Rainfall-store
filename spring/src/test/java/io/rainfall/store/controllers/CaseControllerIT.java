@@ -15,10 +15,9 @@ import java.util.Set;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpStatus.SEE_OTHER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -36,16 +35,19 @@ public class CaseControllerIT extends ControllerIT {
 
   @Test
   public void testRoot() throws Exception {
-    testGetCases("/");
+    HttpServletResponse response = mvc.perform(get("/"))
+            .andExpect(status().isFound())
+            .andReturn()
+            .getResponse();
+    assertThat(
+            response.getHeader("Location"),
+            startsWith("/cases")
+    );
   }
 
   @Test
   public void testGetCases() throws Exception {
-    testGetCases("/cases");
-  }
-
-  private void testGetCases(String url) throws Exception {
-    mvc.perform(get(url))
+    mvc.perform(get("/cases"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(DEFAULT_TEXT_HTML))
             .andExpect(content().string(containsAll(
@@ -78,15 +80,12 @@ public class CaseControllerIT extends ControllerIT {
             .param("name", caseName)
             .param("description", testCase.getDescription());
     HttpServletResponse response = mvc.perform(post)
+            .andExpect(status().isSeeOther())
             .andReturn()
             .getResponse();
     assertThat(
-            response.getStatus(),
-            is(SEE_OTHER.value())
-    );
-    assertThat(
             response.getHeader("Location"),
-            endsWith("/cases/" + caseName)
+            matchesPattern(".*/cases/[0-9]+")
     );
     Iterable<CaseRecord> records = caseDataset.getRecords();
     Set<Case> all = stream(records.spliterator(), false)

@@ -11,6 +11,8 @@ import io.rainfall.store.values.Run;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,12 +23,16 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class RunControllerIT extends ControllerIT {
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private CaseDataset caseDataset;
@@ -71,7 +77,6 @@ public class RunControllerIT extends ControllerIT {
             ));
   }
 
-
   @Transactional
   @Test
   public void testListRunsByCaseID() throws Exception {
@@ -83,7 +88,7 @@ public class RunControllerIT extends ControllerIT {
             .getResponse()
             .getContentAsString();
 
-    List<RunRecord> records = new ObjectMapper()
+    List<RunRecord> records = objectMapper
             .readValue(json, new TypeReference<List<RunRecord>>(){});
     Set<Run> runs = records.stream()
             .map(Record::getValue)
@@ -104,5 +109,25 @@ public class RunControllerIT extends ControllerIT {
                     run.getChecksum(),
                     run.getStatus().name())
             ));
+  }
+
+  @Transactional
+  @Test
+  public void testSetBaseline() throws Exception {
+    String url = format("/runs/%d/baseline", runId);
+    String booleanValue = objectMapper.writeValueAsString(true);
+    RequestBuilder post = post(url)
+            .accept(MediaType.ALL)
+            .content(booleanValue);
+    mvc.perform(post)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+            .andReturn()
+            .getResponse();
+    boolean baseline = runDataset.getRecord(runId)
+            .map(Record::getValue)
+            .map(Run::isBaseline)
+            .orElse(false);
+    assertTrue(baseline);
   }
 }

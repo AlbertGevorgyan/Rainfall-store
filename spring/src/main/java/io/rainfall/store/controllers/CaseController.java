@@ -2,7 +2,6 @@ package io.rainfall.store.controllers;
 
 import io.rainfall.store.dataset.CaseDataset;
 import io.rainfall.store.dataset.CaseRecord;
-import io.rainfall.store.dataset.RunRecord;
 import io.rainfall.store.values.Case;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -12,12 +11,10 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 import static org.springframework.http.HttpStatus.SEE_OTHER;
 
@@ -32,7 +29,12 @@ class CaseController {
     this.dataset = dataset;
   }
 
-  @GetMapping({"/", "/cases"})
+  @GetMapping("/")
+  public ModelAndView root(ModelMap model) {
+    return new ModelAndView("redirect:/cases", model);
+  }
+
+  @GetMapping("/cases")
   public ModelAndView getCases(ModelMap model) {
     model.addAttribute("cases", dataset.getRecords());
     return new ModelAndView("cases", model);
@@ -44,16 +46,17 @@ class CaseController {
     return new ModelAndView("case", model);
   }
 
-  @PostMapping({"/cases"})
+  @PostMapping("/cases")
   public ResponseEntity<?> postCase(String name, String description) {
     Case value = Case.builder()
             .name(name)
             .description(description)
             .build();
-    dataset.save(value);
+    long id = dataset.save(value)
+            .getId();
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-            .path("/{name}")
-            .buildAndExpand(name)
+            .path("/{id}")
+            .buildAndExpand(id)
             .toUri();
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.setLocation(location);

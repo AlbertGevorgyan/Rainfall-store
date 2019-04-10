@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
     <head>
-        {{> header}}
+        <div th:insert="~{header}"></div>
         <title>Performance tests</title>
     </head>
 
@@ -15,14 +15,13 @@
                     <th>Created</th>
                     <th>Updated</th>
                 </tr>
-                {{#cases}}
-                    <tr valign="top">
-                        <td><a href="{{context-path}}/cases/{{id}}">{{value.name}}</a></td>
-                        <td width="500px">{{value.description}}</td>
-                        <td>{{>created}}</td>
-                        <td>{{>updated}}</td>
-                    </tr>
-                {{/cases}}
+
+                <tr valign="top" th:each="case : ${cases}" th:object="${case}">
+                    <td><a th:href="@{/cases/{id}(id=*{id})}" th:text="*{value.name}"></a></td>
+                    <td width="500px" th:text="*{value.description}"></td>
+                    <td th:text="*{created}"></td>
+                    <td th:text="*{updated}"></td>
+                </tr>
             </table>
 
             <p><a href="compare">Compare test results.</a></p>
