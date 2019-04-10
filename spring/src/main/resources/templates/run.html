@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:insert="~{header}"></div>
+
+    <script th:src="@{/lib/plotly-latest.min.js}"></script>
+    <script th:src="@{/report.js}"></script>
+    <script th:src="@{/baselines.js}"></script>
+
+    <title>Test run summary</title>
+</head>
+<body>
+    <div th:object="${run}">
+        <div class="border summary">
+            <div th:insert="~{util :: home}"></div>
+
+            <h1><a name="summary">Test run summary</a></h1>
+            <table border="1" cellpadding="5">
+                <tr>
+                    <td>Test case</td>
+                    <td>
+                        <a th:href="@{/cases/{id}(id=*{parent.id})}" th:text="*{parent.value.name}"></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Created</td>
+                    <td th:include="~{util :: date-format(*{created})}"></td>
+                </tr>
+
+                <div th:object="${run.value}">
+
+                    <tr>
+                        <td>Terracotta version</td>
+                        <td th:text="*{version}"></td>
+                    </tr>
+                    <tr>
+                        <td>Class name</td>
+                        <td th:text="*{className}"></td>
+                    </tr>
+                    <tr>
+                        <td>Git revision checksum</td>
+                        <td th:text="*{checksum}"></td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td th:text="*{status}"></td>
+                    </tr>
+                    <tr>
+                        <td>Baseline</td>
+                        <td align="center">
+                            <div th:insert="~{util :: baseline-check-box}"></div>
+                        </td>
+                    </tr>
+
+                </div>
+
+                <tr>
+                    <td>Updated</td>
+                    <td th:include="~{util :: date-format(*{updated})}"></td>
+                </tr>
+
+            </table>
+            <br>
+
+            <div th:insert="~{reports}"></div>
+
+        </div>
+        <br/>
+
+        <div class="border summary">
+            <h1><a name="tps">Distributed reports</a></h1>
+            <table id="jobs_table"></table>
+            <script>
+            $(document).ready(function() {
+                let url = '[( @{/runs/{id}/jobs #jobs_table(id=*{id})} )]';
+                $('#jobs_table').load(url, format);
+            });
+        </script>
+        </div>
+        <br/>
+
+        <div class="border summary">
+            <h1><a name="tps">Monitor log reports</a></h1>
+            <table id="stats_table"></table>
+            <script>
+            $(document).ready(function() {
+                let url = '[( @{/runs/{id}/stats #stats_table(id=*{id})} )]';
+                $('#stats_table').load(url, format);
+            });
+        </script>
+        </div>
+        <br/>
+
+        <script>
+            $(document).ready(reportAggregate('[(*{id})]'));
+        </script>
+    </div>
+</body>
+</html>

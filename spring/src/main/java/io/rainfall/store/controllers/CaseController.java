@@ -2,66 +2,74 @@ package io.rainfall.store.controllers;
 
 import io.rainfall.store.dataset.CaseDataset;
 import io.rainfall.store.dataset.CaseRecord;
-import io.rainfall.store.dataset.RunRecord;
 import io.rainfall.store.values.Case;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
-import java.util.List;
+import javax.validation.Valid;
 
+import static java.util.stream.Collectors.joining;
 import static org.springframework.http.HttpStatus.SEE_OTHER;
 
 @Controller
 @SuppressWarnings("unused")
-class CaseController {
-
-  private final CaseDataset dataset;
+class CaseController extends DatasetController<CaseRecord, CaseDataset> {
 
   @Autowired
   CaseController(CaseDataset dataset) {
-    this.dataset = dataset;
+    super(dataset, "Case", "/cases");
   }
 
-  @GetMapping({"/", "/cases"})
+  @GetMapping("/")
+  public ModelAndView root(ModelMap model) {
+    return new ModelAndView("redirect:/cases", model);
+  }
+
+  @GetMapping("/cases")
   public ModelAndView getCases(ModelMap model) {
-    model.addAttribute("cases", dataset.getRecords());
+    model.addAttribute("cases", dataset().getRecords());
+    model.addAttribute("caseForm", new CaseForm());
     return new ModelAndView("cases", model);
   }
 
   @GetMapping({"/cases/{id}"})
   public ModelAndView getCase(ModelMap model, @PathVariable long id) {
-    model.addAttribute("case", getRecord(id));
-    return new ModelAndView("case", model);
+    return get(model, id);
   }
 
-  @PostMapping({"/cases"})
-  public ResponseEntity<?> postCase(String name, String description) {
-    Case value = Case.builder()
-            .name(name)
-            .description(description)
-            .build();
-    dataset.save(value);
-    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-            .path("/{name}")
-            .buildAndExpand(name)
-            .toUri();
-    HttpHeaders responseHeaders = new HttpHeaders();
-    responseHeaders.setLocation(location);
-    return new ResponseEntity<>(null, responseHeaders, SEE_OTHER);
+  @PostMapping(path = "/cases")
+  public ResponseEntity<?> postCase(@Valid @ModelAttribute("caseForm") CaseForm form,
+                                    BindingResult result) {
+    if (result.hasErrors()) {
+      String errors = listErrors(result);
+      throw new IllegalArgumentException(errors);
+    }
+    Case testCase = form.build();
+    long id = dataset()
+            .save(testCase)
+            .getId();
+    return post(id, SEE_OTHER);
   }
 
-  private CaseRecord getRecord(Long id) {
-    return dataset.getRecord(id)
-            .orElseThrow(() -> new IllegalArgumentException("Test not found: " + id));
+  private String listErrors(BindingResult result) {
+    return result.getAllErrors()
+            .stream()
+            .map(ObjectError::getDefaultMessage)
+            .collect(joining("; ", "", "."));
+  }
+
+  @GetMapping("/compare")
+  public ModelAndView getCompareForm(ModelMap model) {
+    model.addAttribute("cases", dataset().getRecords());
+    return new ModelAndView("compare-form", model);
   }
 }

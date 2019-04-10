@@ -33,8 +33,8 @@ import io.rainfall.store.record.RunRec;
 import io.rainfall.store.record.StatsRec;
 import io.rainfall.store.record.Store;
 import io.rainfall.store.record.TestCaseRec;
-import io.rainfall.store.service.hdr.HdrData;
-import io.rainfall.store.service.hdr.HistogramService;
+import io.rainfall.store.hdr.HdrData;
+import io.rainfall.store.hdr.HistogramService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

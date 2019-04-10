@@ -1,20 +1,17 @@
-function setBaselineChecks() {
-    $('.baseline-check').each(setBaselineCheck);
-    $('.baseline-check').click(toggleBaseline);
-}
-
-function setBaselineCheck() {
-    let baseline = 'true' == $(this).attr("data-baseline");
-    $(this).prop("checked", baseline);
-}
-
 function toggleBaseline(evt) {
-    let checked = $(this).prop('checked');
-    let ok = confirm("Do you want to permanently change the baseline status?");
+    let source = event.target || event.srcElement;
+    let checked = source.checked;
+    let ok = confirm("Do you want to permanently change the baseline status to " + checked + "?");
     if (ok) {
-        let ID = $(this).attr("data-id");
+        let ID = source.getAttribute('data-id');
         let url = getBaselineStatusURL(ID);
-        $.post(url, checked.toString());
+        $.ajax({
+            'type': 'POST',
+            'url': url,
+            'contentType': 'application/json',
+            'data': JSON.stringify(checked),
+            'dataType': 'json',
+        });
     } else {
         evt.preventDefault();
     }
