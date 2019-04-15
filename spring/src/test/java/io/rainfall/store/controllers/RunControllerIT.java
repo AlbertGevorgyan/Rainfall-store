@@ -48,6 +48,7 @@ public class RunControllerIT extends ControllerIT {
   @Autowired
   private ObjectMapper objectMapper;
 
+  private final String caseName = "Test1";
 
   private final Run run = Run.builder()
           .status(INCOMPLETE)
@@ -64,7 +65,7 @@ public class RunControllerIT extends ControllerIT {
   public void setup() {
     super.setup();
     Case testCase = Case.builder()
-            .name("Test1")
+            .name(caseName)
             .description("Some test")
             .build();
     caseId = caseDataset.save(testCase).getId();
@@ -75,7 +76,7 @@ public class RunControllerIT extends ControllerIT {
   @Test
   public void testPostRun() throws Exception {
     String json = objectMapper.writeValueAsString(run);
-    RequestBuilder post = post("/runs/" + caseId)
+    RequestBuilder post = post("/runs/" + caseName)
             .contentType(APPLICATION_JSON_UTF8)
             .content(json);
     MockHttpServletResponse response = mvc.perform(post)
@@ -154,10 +155,9 @@ public class RunControllerIT extends ControllerIT {
   @Test
   public void testSetStatus() throws Exception {
     String url = format("/runs/%d/status", runId);
-    String statusJson = objectMapper.writeValueAsString(COMPLETE);
     RequestBuilder post = post(url)
-            .contentType(APPLICATION_JSON_UTF8)
-            .content(statusJson);
+            .contentType(DEFAULT_TEXT_HTML)
+            .content(COMPLETE.name());
     mvc.perform(post)
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON_UTF8));

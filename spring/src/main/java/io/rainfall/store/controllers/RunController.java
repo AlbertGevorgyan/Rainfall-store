@@ -1,8 +1,11 @@
 package io.rainfall.store.controllers;
 
+import io.rainfall.store.dataset.CaseDataset;
 import io.rainfall.store.dataset.CaseRecord;
+import io.rainfall.store.dataset.Record;
 import io.rainfall.store.dataset.RunDataset;
 import io.rainfall.store.dataset.RunRecord;
+import io.rainfall.store.values.Case;
 import io.rainfall.store.values.Run;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,20 +15,29 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 @Controller
 @SuppressWarnings("unused")
 public class RunController extends ChildController<Run, RunRecord, CaseRecord, RunDataset> {
 
   @Autowired
+  CaseDataset caseDataset;
+
+  @Autowired
   RunController(RunDataset dataset) {
     super(dataset, "Run", "/runs");
   }
 
-  @PostMapping("/runs/{caseId}")
-  public ResponseEntity<?> postRun(@PathVariable long caseId, @RequestBody Run run) {
+  @PostMapping("/runs/{caseName}")
+  public ResponseEntity<?> postRun(@PathVariable String caseName, @RequestBody Run run) {
+    Optional<CaseRecord> caseRecord = caseDataset.findByName(caseName);
+    Long caseId = caseRecord.map(Record::getId)
+            .orElseThrow(() -> new IllegalArgumentException("Case not found: " + caseName));
     return super.post(caseId, run);
   }
 
@@ -52,9 +64,10 @@ public class RunController extends ChildController<Run, RunRecord, CaseRecord, R
     return ResponseEntity.ok(baseline);
   }
 
-  @PostMapping(path = "/runs/{id}/status", consumes = APPLICATION_JSON_VALUE)
+  @PostMapping(path = "/runs/{id}/status")
   public ResponseEntity<?> setStatus(@PathVariable long id,
-                                       @RequestBody Run.Status status) {
+                                       @RequestBody String statusName) {
+    Run.Status status = Run.Status.valueOf(statusName);
     dataset().setStatus(id, status);
     return ResponseEntity.ok(status);
   }
