@@ -8,7 +8,7 @@
     <body>
         <div class="border summary">
             <h1>Performance tests</h1>
-            <table border="1" cellpadding="5" style="white-space:pre-wrap; word-wrap:break-word" >
+            <table border="1" cellpadding="5">
                 <tr>
                     <th>Name</th>
                     <th>Description</th>
@@ -18,9 +18,9 @@
 
                 <tr valign="top" th:each="case : ${cases}" th:object="${case}">
                     <td><a th:href="@{/cases/{id}(id=*{id})}" th:text="*{value.name}"></a></td>
-                    <td width="500px" th:text="*{value.description}"></td>
-                    <td th:text="*{created}"></td>
-                    <td th:text="*{updated}"></td>
+                    <td width="500px" th:text="*{value.description}" style="white-space:pre-wrap; word-wrap:break-word"></td>
+                    <td th:include="~{util :: date-format(*{created})}"></td>
+                    <td th:include="~{util :: date-format(*{updated})}"></td>
                 </tr>
             </table>
 
@@ -29,14 +29,14 @@
         <br/>
         <div class="border summary">
             <h1>Add new test</h1>
-            <form method="post">
+            <form th:object="${caseForm}" method="post">
                 <p>
-                    Name:<br>
-                    <input type="text" name="name" id="name">
+                    <label>Name:</label><br>
+                    <input type="text" th:field="*{name}">
                 </p>
                 <p>
-                    Description:<br>
-                    <textarea rows="5" name="description" id="description"></textarea>
+                    <label>Description:</label><br>
+                    <textarea rows="5" type="text" th:field="*{description}"></textarea>
                 </p>
                 <p>
                     <input type="submit" value="Submit" name="submit" id="submit">

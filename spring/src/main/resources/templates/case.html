@@ -18,14 +18,14 @@
                     <p th:text="*{value.description}" style="white-space:pre-wrap; word-wrap:break-word"></p>
                 </div>
 
-                <h3 th:text="|Created: *{created}|"></h3>
-                <h3 th:text="|Updated: *{updated}|"></h3>
+                <h3>Created: <span th:include="~{util :: date-format(*{created})}"></span></h3>
+                <h3>Updated: <span th:include="~{util :: date-format(*{updated})}"></span></h3>
 
                 <table id="run_table"></table>
 
                 <script th:inline="javascript">
                     $(document).ready(() => {
-                        var url = getRunsFormURL('[(*{id})]');
+                        let url = '[( @{/cases/{id}/runs #run_table(id=*{id})} )]';
                         $('#run_table').load(url, () => {
                             format();
                         });

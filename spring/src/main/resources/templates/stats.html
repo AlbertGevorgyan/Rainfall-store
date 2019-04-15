@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head lang="en">
+        <div th:insert="~{header}"></div>
+
+        <title>Monitor logs</title>
+    </head>
+    <body>
+    <div class="border summary">
+        <div th:insert="~{util :: home}"></div>
+
+        <h1><a name="summary">Monitor log outputs</a></h1>
+        <table id="stats_table" border="1" cellpadding="5" >
+            <tr>
+                <th>Type</th>
+                <th>Host</th>
+                <th>Completion time</th>
+            </tr>
+            <div th:switch="*{#lists.size(stats)}">
+                <tr th:case="0"><td colspan="3">No complete logs yet.</td></tr>
+
+                <div th:case="*" >
+                    <tr th:each="log: ${stats}" th:object="${log}" valign="top">
+                        <td>
+                            <a th:text="*{value.type}" th:href="@{/stats/{id}(id=*{id})}"></a>
+                        </td>
+                        <td th:text="*{value.host}"></td>
+                        <td th:include="~{util :: date-format(*{updated})}"></td>
+                    </tr>
+                </div>
+
+            </div>
+
+        </table>
+    </div>
+    </body>
+</html>

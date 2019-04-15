@@ -1,62 +1,69 @@
 package io.rainfall.store.controllers;
 
+import io.rainfall.store.dataset.CaseRecord;
 import io.rainfall.store.dataset.RunDataset;
 import io.rainfall.store.dataset.RunRecord;
+import io.rainfall.store.values.Run;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
-@Controller
-public class RunController {
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-  private final RunDataset dataset;
+@Controller
+@SuppressWarnings("unused")
+public class RunController extends ChildController<Run, RunRecord, CaseRecord, RunDataset> {
 
   @Autowired
   RunController(RunDataset dataset) {
-    this.dataset = dataset;
+    super(dataset, "Run", "/runs");
+  }
+
+  @PostMapping("/runs/{caseId}")
+  public ResponseEntity<?> postRun(@PathVariable long caseId, @RequestBody Run run) {
+    return super.post(caseId, run);
   }
 
   @GetMapping({"/cases/{parentId}/runs"})
   public ModelAndView getRunsByCaseID(ModelMap model, @PathVariable long parentId) {
-    List<RunRecord> runs = dataset.findByParentId(parentId);
-    model.addAttribute("runs", runs);
-    return new ModelAndView("runs", model);
+    return getByParentId(model, parentId);
   }
 
   @GetMapping({"/cases/{parentId}/runs/json"})
   @ResponseBody
   public List<RunRecord> listRunsByCaseID(@PathVariable long parentId) {
-    return dataset.findByParentId(parentId);
+    return dataset().findByParentId(parentId);
   }
 
   @GetMapping({"/runs/{id}"})
   public ModelAndView getRun(ModelMap model, @PathVariable long id) {
-    model.addAttribute("run", getRecord(id));
-    return new ModelAndView("run", model);
+    return get(model, id);
   }
 
-  @PostMapping("/runs/{id}/baseline")
+  @PostMapping(path = "/runs/{id}/baseline", consumes = APPLICATION_JSON_VALUE)
   public ResponseEntity<?> setBaseline(@PathVariable long id,
-                                       @RequestBody String booleanBody) {
-    //bug in jackson?
-    boolean baseline = Boolean.valueOf(
-            booleanBody.replaceAll("=$", ""));
-    dataset.setBaseline(id, baseline);
+                                       @RequestBody boolean baseline) {
+    dataset().setBaseline(id, baseline);
     return ResponseEntity.ok(baseline);
   }
 
-  private RunRecord getRecord(Long id) {
-    return dataset.getRecord(id)
-            .orElseThrow(() -> new IllegalArgumentException("Run not found: " + id));
+  @PostMapping(path = "/runs/{id}/status", consumes = APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> setStatus(@PathVariable long id,
+                                       @RequestBody Run.Status status) {
+    dataset().setStatus(id, status);
+    return ResponseEntity.ok(status);
+  }
+
+  @GetMapping({"/compare/{sids}"})
+  public ModelAndView getCompareReport(ModelMap model, @PathVariable String sids) {
+    long[] ids = parseIds(sids);
+    List<RunRecord> runs = dataset().findByIds(ids);
+    model.addAttribute("runs", runs);
+    return new ModelAndView("compare-report", model);
   }
 }

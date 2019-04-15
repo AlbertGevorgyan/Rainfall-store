@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Set;
 
+import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.Matchers.contains;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class CaseControllerIT extends ControllerIT {
 
+  @SuppressWarnings("unused")
   @Autowired
   private CaseDataset caseDataset;
 
@@ -92,5 +94,55 @@ public class CaseControllerIT extends ControllerIT {
             .map(Record::getValue)
             .collect(toSet());
     assertThat(all, contains(testCase));
+  }
+
+  @Transactional
+  @Test
+  public void testPostBlankName() throws Exception {
+    RequestBuilder post = post("/cases")
+            .param("name", "")
+            .param("description", "Description");
+    expectErrorPage(post, "/cases");
+  }
+
+  @Transactional
+  @Test
+  public void testPostTooLongName() throws Exception {
+    String name = String.join("", nCopies(256, "n"));
+    RequestBuilder post = post("/cases")
+            .param("name", name)
+            .param("description", "Description");
+    expectErrorPage(post, "/cases");
+  }
+
+  @Transactional
+  @Test
+  public void testPostTooLongDescription() throws Exception {
+    String description = String.join("", nCopies(1025, "n"));
+    RequestBuilder post = post("/cases")
+            .param("name", "name")
+            .param("description", description);
+    expectErrorPage(post, "/cases");
+  }
+
+  @Transactional
+  @Test
+  public void testPostNoName() throws Exception {
+    RequestBuilder post = post("/cases")
+            .param("description", "Description");
+    expectErrorPage(post, "/cases");
+  }
+
+  @Transactional
+  @Test
+  public void testGetCompareForm() throws Exception {
+    caseDataset.save(testCase);
+    mvc.perform(get("/compare"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(DEFAULT_TEXT_HTML))
+            .andExpect(content().string(containsAll(
+                    "Select test runs to compare",
+                    "Test1"
+            )));
   }
 }

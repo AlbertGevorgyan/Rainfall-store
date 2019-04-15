@@ -16,7 +16,7 @@
 
 package io.rainfall.store.service;
 
-import io.rainfall.store.service.hdr.HdrData;
+import io.rainfall.store.hdr.HdrData;
 
 import java.util.HashMap;
 import java.util.Map;

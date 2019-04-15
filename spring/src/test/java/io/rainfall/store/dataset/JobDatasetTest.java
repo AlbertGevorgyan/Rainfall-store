@@ -45,7 +45,7 @@ public class JobDatasetTest {
           .className("my.Class")
           .build();
 
-  private final Job job =Job.builder()
+  private final Job job = Job.builder()
           .clientNumber(1)
           .host("localhost")
           .symbolicName("localhost-1")

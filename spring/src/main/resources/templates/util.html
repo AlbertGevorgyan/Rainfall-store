@@ -16,9 +16,12 @@
                 class="baseline-check"
                 th:data-id="${run.id}"
                 th:checked="*{baseline}"
-                onclick="toggleBaseline(this)"
+                onclick="toggleBaseline(event)"
         />
     </div>
 
+    <span th:fragment="date-format (date)">
+        <span th:text="${#dates.format(date, 'dd MMM yyyy HH:mm:ss zzz')}">...</span>
+    </span>
 </body>
 </html>
